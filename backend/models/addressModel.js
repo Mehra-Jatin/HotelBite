@@ -1,3 +1,5 @@
+import mongoose from 'mongoose';
+
 const addressSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -7,11 +9,19 @@ const addressSchema = new mongoose.Schema({
     userModel: {
         type: String,
         required: true,
-        enum: ['Hotel', 'Restaurant'], // Only these models allowed
+        enum: ['Hotel', 'Restaurant'],
     },
     location: {
-        type: String,
-        required: true,
+        type: {
+            type: String,
+            enum: ['Point'],
+            required: true,
+            default: 'Point',
+        },
+        coordinates: {
+            type: [Number], // [longitude, latitude]
+            required: true,
+        },
     },
     city: {
         type: String,
@@ -29,16 +39,11 @@ const addressSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    latitude: {
-        type: Number,
-        required: true,
-    },
-    longitude: {
-        type: Number,
-        required: true,
-    },
 });
-const Address = mongoose.model("Address", addressSchema);
+
+// Create 2dsphere index for geospatial queries
+addressSchema.index({ location: '2dsphere' });
+
+const Address = mongoose.model('Address', addressSchema);
 
 export default Address;
-
