@@ -27,10 +27,14 @@ const hotelSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Address',
     },
-    partnerRestaurants: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Restaurant',
-    }],
+    partnerRestaurants: [
+      {
+        restaurantId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Restaurant',
+        },
+      },
+    ],
 });
 
 const Hotel = mongoose.model("Hotel", hotelSchema);

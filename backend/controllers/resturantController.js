@@ -1,3 +1,5 @@
+import Hotel  from "../models/hotelModel.js";
+import Restaurant from "../models/restaurantModel.js";
 import RestaurantOrder from "../models/restaurantOrderModel.js";
 import Menu from "../models/menuModel.js";
 import cloudinary from "../lib/cloudinary.js";
@@ -262,4 +264,93 @@ export const updateDeliveryStatus = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+
+
+export const addHotel = async (req, res) => {
+    const restaurantId  = req.user.id;
+    const { hotelId } = req.body;
+
+    try {
+        const restaurant = await Restaurant.findById(restaurantId);
+        if (!restaurant) {
+            return res.status(404).json({ message: "Restaurant not found" });
+        }
+        const hotel = await Hotel.findById(hotelId);
+        if (!hotel) {
+            return res.status(404).json({ message: "Hotel not found" });
+        }
+
+        // Check if the hotel is already a partner
+        const isPartner = restaurant.partnerHotels.some(partner => partner.hotelId.toString() === hotelId);
+        if (isPartner) {
+            return res.status(400).json({ message: "Hotel is already a partner" });
+        }
+
+        // Add the hotel to the restaurant's partnerHotels array
+        restaurant.partnerHotels.push({ hotelId: hotel._id });
+        await restaurant.save();
+        // Add the restaurant to the hotel's partnerRestaurants array
+        hotel.partnerRestaurants.push({ restaurantId: restaurant._id });
+        await hotel.save();
+
+        res.status(200).json({ message: "Hotel added successfully" });
+    }
+    catch (error) {
+        console.error("Error adding hotel:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+
+export const removeHotel = async (req, res) => {
+    const restaurantId  = req.user.id;
+    const { hotelId } = req.params;
+
+    try {
+        const restaurant = await Restaurant.findById(restaurantId);
+        if (!restaurant) {
+            return res.status(404).json({ message: "Restaurant not found" });
+        }
+
+        const hotel = await Hotel.findById(hotelId);
+        if (!hotel) {
+            return res.status(404).json({ message: "Hotel not found" });
+        }
+
+         restaurant.partnerHotels = restaurant.partnerHotels.filter(partner => partner.hotelId.toString() !== hotelId);
+        await restaurant.save();
+
+        hotel.partnerRestaurants = hotel.partnerRestaurants.filter(partner => partner.restaurantId.toString() !== restaurantId);
+        await hotel.save();
+        res.status(200).json({ message: "Hotel removed successfully" });
+    } catch (error) {
+        console.error("Error removing hotel:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
+export const getPartnerHotels = async (req, res) => {
+    const restaurantId  = req.user.id;
+
+    try {
+        const restaurant = await Restaurant.findById(restaurantId)
+            .populate('partnerHotels.hotelId');
+        if (!restaurant) {
+            return res.status(404).json({ message: "Restaurant not found" });
+        }
+        if (restaurant.partnerHotels.length === 0) {
+            return res.status(404).json({ message: "No partner hotels found for this restaurant" });
+        }
+        res.status(200).json(restaurant.partnerHotels);
+    }
+    catch (error) {
+        console.error("Error fetching partner hotels:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
+
 

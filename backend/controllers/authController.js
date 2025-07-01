@@ -132,3 +132,36 @@ export const logout = (req, res) => {
     res.status(200).json({ message: 'Logged out successfully' });
 };
 
+export const checkAuth =async (req, res) => {
+    const token = req.cookies.token;
+
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try{
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+        if (decoded.role === 'hotel') {
+            const user = await Hotel.findById(decoded.id).select('-password');
+            if (!user) {
+                return res.status(404).json({ message: 'Hotel not found' });
+            }
+            return res.status(200).json({ message: 'Authenticated as hotel', user });
+        } else if (decoded.role === 'restaurant') {
+            const user = await Restaurant.findById(decoded.id).select('-password');
+            if (!user) {
+                return res.status(404).json({ message: 'Restaurant not found' });
+            }
+            return res.status(200).json({ message: 'Authenticated as restaurant', user });
+        } else {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+    } catch (error) {
+        console.error('Error verifying token:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
+    
