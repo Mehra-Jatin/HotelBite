@@ -6,38 +6,18 @@ const menuSchema = new mongoose.Schema({
         required: true,
         ref: 'Restaurant',
     },
-    hotelId: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'Hotel',
-    },
-    item: 
+    hotels:[
         {
-            name: {
-                type: String,
-                required: true,
-            },
-            description: {
-                type: String,
-                required: true,
-            },
-            restaurantPrice: {
-                type: Number,
-                required: true,
-            },
-            hotelPrice: {
-                type: Number,
-            },
-            category: {
-                type: String,
-                required: true,
-                enum: ['Appetizer', 'Main Course', 'Dessert', 'Beverage'],
-            },
-            image: {
-                type: String,
-                required: true,
-            },
-        },
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+            ref: 'Hotel',
+        }
+    ],
+    items:[ {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+            ref: 'Item',
+        }],
         isAvailable: {
             type: Boolean,
             required:true,

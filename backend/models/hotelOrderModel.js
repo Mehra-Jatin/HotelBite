@@ -21,19 +21,15 @@ const orderSchema = new mongoose.Schema({
     },
     items: [
         {
-            productId: {
+            itemId: {
                 type: mongoose.Schema.Types.ObjectId,
                 required: true,
-                ref: 'Menu',
+                ref: 'Item',
             },
             quantity: {
                 type: Number,
                 required: true,
                 min: 1,
-            },
-            price: {
-                type: Number,
-                required: true,
             },
         },
     ],
