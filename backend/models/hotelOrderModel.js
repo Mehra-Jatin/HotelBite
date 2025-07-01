@@ -41,19 +41,6 @@ const orderSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
-    status: {
-        type: String,
-        required: true,
-        enum: ['Confirmed', 'Cancelled', 'Completed'],
-        default: 'Confirmed',
-    },
-    paymentStatus: {
-        type: String,
-        required: true,
-        enum: ['Pending', 'Paid', 'Failed'],
-        default: 'Pending',
-    },
-
 });
 
 const HotelOrder = mongoose.model("HotelOrder", orderSchema);

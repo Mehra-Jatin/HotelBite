@@ -13,12 +13,16 @@ const menuSchema = new mongoose.Schema({
             ref: 'Hotel',
         }
     ],
-    items:[ {
-            type: mongoose.Schema.Types.ObjectId,
-            required: true,
-            ref: 'Item',
-        }],
-        isAvailable: {
+    items:[ 
+        {
+            itemId:{
+                type: mongoose.Schema.Types.ObjectId,
+                required: true,
+                ref: 'Item',
+            }
+        }
+    ],
+    isAvailable: {
             type: Boolean,
             required:true,
             default: true,

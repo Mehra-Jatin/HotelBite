@@ -2,6 +2,7 @@ import Hotel from "../models/hotelModel.js";
 import Menu from "../models/menuModel.js";
 import HotelOrder from "../models/hotelOrderModel.js";
 import PricePercentage from "../models/pricePercentageModel.js";
+import RestaurantOrder from "../models/restaurantOrderModel.js";
 
 export const getHotelDetails = async (req, res) => {
     const {hotelId }=  req.body;
@@ -168,9 +169,29 @@ export const orderFromHotel = async (req, res) => {
 
 export const getHotelOrders = async (req, res) => {
     const hotelId = req.user.id;
-
     try {
         const orders = await HotelOrder.find({ hotelId })
+            .populate('items.itemId') // Populate itemId inside items array
+            .sort({ createdAt: -1 }); // Sort by latest orders first    
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ message: "No orders found for this hotel"
+            });
+        }
+        res.status(200).json(orders);
+    } catch (error) {
+        console.error("Error fetching hotel orders:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+};
+
+
+
+export const getOrdersByRoom = async (req, res) => {
+    const hotelId = req.user.id;
+    const { roomNo } = req.params;
+
+    try {
+        const orders = await HotelOrder.find({ hotelId , roomNo })
             .populate('items.itemId') // Populate itemId inside items array
             .sort({ createdAt: -1 }); // Sort by latest orders first
 
@@ -184,3 +205,53 @@ export const getHotelOrders = async (req, res) => {
         res.status(500).json({ message: "Server error", error });
     }
 };
+
+
+export const getOrdersByResturant = async (req, res) => {
+    const { restaurantId } = req.params;
+    const hotelId = req.user.id;
+
+    try {
+        const orders = await RestaurantOrder.find({ hotelId, restaurantId })
+            .populate('items.itemId') // Populate itemId inside items array
+            .sort({ createdAt: -1 }); // Sort by latest orders first
+
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ message: "No orders found for this restaurant" });
+        }
+
+        res.status(200).json(orders);
+    } catch (error) {
+        console.error("Error fetching orders by restaurant:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+};
+
+export const placeOrderToRestaurant = async (req, res) => {
+    const { restaurantId, items, totalAmount } = req.body;
+    const hotelId = req.user.id;
+
+    try {
+        if (!restaurantId || !items || !totalAmount) {
+            return res.status(400).json({ message: "Restaurant ID, items, and total amount are required" });
+        }
+
+        const restaurantOrder = new RestaurantOrder({
+            hotelId,
+            restaurantId,
+            items,
+            totalAmount
+        });
+
+        await restaurantOrder.save();
+
+        return res.status(201).json({
+            message: "Order placed successfully",
+        });
+    } catch (error) {
+        console.error("Error placing order to restaurant:", error);
+        return res.status(500).json({ message: "Server error", error });
+    }
+};
+
+
