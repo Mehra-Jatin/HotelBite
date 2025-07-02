@@ -292,7 +292,7 @@ export const placeOrderToRestaurant = async (req, res) => {
 
 
 export const addRestaurant = async (req, res) => {
-    const { restaurantId } = req.body;
+    const {id: restaurantId } = req.params; // Assuming restaurantId is passed in the request params
     const hotelId = req.user.id;
 
     try {
@@ -329,7 +329,7 @@ export const addRestaurant = async (req, res) => {
 }
 
 export const removeRestaurant = async (req, res) => {
-    const { restaurantId } = req.body;
+    const { id:restaurantId } = req.params; // Assuming restaurantId is passed in the request params
     const hotelId = req.user.id;
 
     try {

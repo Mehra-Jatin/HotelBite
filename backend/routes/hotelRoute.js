@@ -28,7 +28,7 @@ router.post('/order/restaurant',authMiddleware, placeOrderToRestaurant);
 
 
 router.get('/partners',authMiddleware, getPartnerRestaurants); // Get partner restaurants for a hotel
-router.post('/partners', authMiddleware, addRestaurant); // Add a restaurant to the hotel
-router.delete('/partners',authMiddleware, removeRestaurant); // Remove a restaurant from the hotel
+router.post('/partners/:id', authMiddleware, addRestaurant); // Add a restaurant to the hotel
+router.delete('/partners/:id',authMiddleware, removeRestaurant); // Remove a restaurant from the hotel
 
 export default router;

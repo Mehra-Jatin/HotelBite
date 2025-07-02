@@ -59,16 +59,11 @@ export const addItem = async (req, res) => {
 
         const newItem = new Item({
             restaurantId,
-            items: [
-                {
-                    productId: new mongoose.Types.ObjectId(),
-                    name,
-                    price,
-                    description,
-                    image: imageUrl,
-                    category
-                }
-            ]
+            name,
+            price,
+            description,
+            image: imageUrl, // Use the uploaded image URL
+            category
         });
 
         await newItem.save();
@@ -92,7 +87,7 @@ export const addItem = async (req, res) => {
 
 export const updateItem = async (req, res) => {
     const restaurantId  = req.user.id;
-    const { itemId } = req.params;
+    const { id:itemId } = req.params;
     const { name, price, description, image, category } = req.body;
     try {
         if (!name || !price || !description || !image || !category) {
@@ -131,7 +126,7 @@ export const updateItem = async (req, res) => {
 
 export const deleteItem = async (req, res) => {
     const restaurantId  = req.user.id;
-    const { itemId } = req.params;
+    const {id: itemId } = req.params;
     try {
         const item = await Item.findById(itemId);
         if (!item || item.restaurantId.toString() !== restaurantId) {
@@ -181,7 +176,7 @@ export const getRestaurantOrders = async (req, res) => {
 
 
 export const getOrdersByHotel = async (req, res) => {
-    const { hotelId } = req.params;
+    const {id: hotelId } = req.params;
 
     try {
         const orders = await RestaurantOrder.find({ hotelId })
@@ -201,7 +196,7 @@ export const getOrdersByHotel = async (req, res) => {
 };
 
 export const updatePaymentStatus = async (req, res) => {
-    const { orderId } = req.params;
+    const {id: orderId } = req.params;
     const { paymentStatus } = req.body;
 
     try {
@@ -240,7 +235,7 @@ export const updatePendingPayment = async (req, res) => {
 
 
 export const updateDeliveryStatus = async (req, res) => {
-    const { orderId } = req.params;
+    const { id:orderId } = req.params;
     const { deliveryStatus } = req.body;
 
     try {
@@ -269,7 +264,7 @@ export const updateDeliveryStatus = async (req, res) => {
 
 export const addHotel = async (req, res) => {
     const restaurantId  = req.user.id;
-    const { hotelId } = req.body;
+    const {id: hotelId } = req.params;
 
     try {
         const restaurant = await Restaurant.findById(restaurantId);
@@ -305,7 +300,7 @@ export const addHotel = async (req, res) => {
 
 export const removeHotel = async (req, res) => {
     const restaurantId  = req.user.id;
-    const { hotelId } = req.params;
+    const {id: hotelId } = req.params;
 
     try {
         const restaurant = await Restaurant.findById(restaurantId);
