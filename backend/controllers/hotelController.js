@@ -6,7 +6,7 @@ import PricePercentage from "../models/pricePercentageModel.js";
 import RestaurantOrder from "../models/restaurantOrderModel.js";
 
 export const getHotelDetails = async (req, res) => {
-    const {hotelId }=  req.body;
+    const {id:hotelId }=  req.body;
 
     try {
         const hotel = await Hotel.findById(hotelId).populate('address');
@@ -23,7 +23,7 @@ export const getHotelDetails = async (req, res) => {
 
 
 export const getHotelMenu = async (req, res) => {
-    const { hotelId } = req.params; // Assuming hotelId is passed in the request params
+    const {id: hotelId } = req.params; // Assuming hotelId is passed in the request params
 
     try {
         const menus = await Menu.find({ hotels: hotelId })
@@ -68,7 +68,7 @@ export const getHotelMenu = async (req, res) => {
 
 
 export const getHotelMenuByRestaurant = async (req, res) => {
-     const { restaurantId } = req.body;
+     const { id: restaurantId } = req.params;
      const hotelId = req.user.id; // Assuming hotelId is set in the request object
 
      try {
@@ -135,10 +135,44 @@ export const updateHotelMenuPercentage = async (req, res) => {
      }
 };
 
+export const getHotelMenuPercentage = async (req, res) => {
+    const hotelId = req.user.id;
+    try {
+        const percentages = await PricePercentage.find({ hotelId });
+        if (!percentages || percentages.length === 0) {
+            return res.status(404).json({ message: "No price percentages found for this hotel "});
+        }
+        res.status(200).json(percentages);
+    } catch (error) {
+        console.error("Error fetching hotel menu percentages:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+};
+
+
+export const deleteHotelMenuPercentage = async (req, res) => {
+    const { category } = req.body;
+    const hotelId = req.user.id;
+    try {
+        if (!category) {
+            return res.status(400).json({ message: "Category is required" });
+        }
+        const deletedPercentage = await PricePercentage.findOneAndDelete({ category, hotelId });
+        if (!deletedPercentage) {
+            return res.status(404).json({ message: "Price percentage not found for this category" });
+        }
+        res.status(200).json({ message: "Price percentage deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting hotel menu percentage:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+};
+
+
 
 export const orderFromHotel = async (req, res) => {
     const orderData = req.body;
-    const { hotelId } = req.params;
+    const {id: hotelId } = req.params;
 
     try {
         const { name, phoneNo, items, roomNo, totalAmount } = orderData;
@@ -189,7 +223,7 @@ export const getHotelOrders = async (req, res) => {
 
 export const getOrdersByRoom = async (req, res) => {
     const hotelId = req.user.id;
-    const { roomNo } = req.params;
+    const { roomNo } = req.body;
 
     try {
         const orders = await HotelOrder.find({ hotelId , roomNo })
@@ -209,7 +243,7 @@ export const getOrdersByRoom = async (req, res) => {
 
 
 export const getOrdersByResturant = async (req, res) => {
-    const { restaurantId } = req.params;
+    const { id : restaurantId } = req.params;
     const hotelId = req.user.id;
 
     try {

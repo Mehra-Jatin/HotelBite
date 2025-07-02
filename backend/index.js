@@ -1,6 +1,7 @@
 import express from 'express';
 import {connectDB} from './lib/db.js';
 import authRoute from './routes/authRoute.js';
+import hotelRoute from './routes/hotelRoute.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -14,7 +15,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth',authRoute);
-
+app.use('/api/hotel',hotelRoute);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
