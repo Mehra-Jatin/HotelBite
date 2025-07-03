@@ -123,6 +123,41 @@ export const updateItem = async (req, res) => {
     }
 };
 
+export const updateMenuAvailability = async (req, res) => {
+    const restaurantId  = req.user.id;
+    const { isAvailable } = req.body;
+    try {
+        const menu = await Menu.findOne({ restaurantId });
+        if (!menu) {
+            return res.status(404).json({ message: "Menu not found for this restaurant" });
+        }
+        menu.isAvailable = isAvailable;
+        await menu.save();
+        res.status(200).json({ message: "Menu availability updated successfully" });
+    } catch (error) {
+        console.error("Error updating menu availability:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const updateItemAvailability = async (req, res) => {
+    const restaurantId  = req.user.id;
+    const { id: itemId } = req.params;
+    const { isAvailable } = req.body;
+    try {
+        const item = await Item.findById(itemId);
+        if (!item || item.restaurantId.toString() !== restaurantId) {
+            return res.status(404).json({ message: "Item not found or does not belong to this restaurant" });
+        }
+        item.isAvailable = isAvailable;
+        await item.save();
+        res.status(200).json({ message: "Item availability updated successfully" });
+    } catch (error) {
+        console.error("Error updating item availability:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 
 export const deleteItem = async (req, res) => {
     const restaurantId  = req.user.id;
@@ -281,6 +316,11 @@ export const addHotel = async (req, res) => {
         if (isPartner) {
             return res.status(400).json({ message: "Hotel is already a partner" });
         }
+      
+        const menu = await Menu.findOne({ restaurantId });
+
+        menu.hotels.push(hotelId);
+        await menu.save();
 
         // Add the hotel to the restaurant's partnerHotels array
         restaurant.partnerHotels.push({ hotelId: hotel._id });
@@ -312,6 +352,13 @@ export const removeHotel = async (req, res) => {
         if (!hotel) {
             return res.status(404).json({ message: "Hotel not found" });
         }
+
+        const menu = await Menu.findOne({ restaurantId, hotels: hotelId });
+        
+        menu.hotels = menu.hotels.filter(h => h.toString() !== hotelId);
+        await menu.save();
+
+
 
          restaurant.partnerHotels = restaurant.partnerHotels.filter(partner => partner.hotelId.toString() !== hotelId);
         await restaurant.save();

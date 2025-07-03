@@ -27,6 +27,11 @@ const itemSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    isAvailable: {
+        type: Boolean,
+        required: true,
+        default: true,
+    },
 });
 
 const Item = mongoose.model("Item", itemSchema);

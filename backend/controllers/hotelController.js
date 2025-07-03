@@ -21,14 +21,14 @@ export const getHotelDetails = async (req, res) => {
     }
 };
 
-
 export const getHotelMenu = async (req, res) => {
-    const {id: hotelId } = req.params; // Assuming hotelId is passed in the request params
+    const { id: hotelId } = req.params;
 
     try {
+        // Find menus where this hotel is listed
         const menus = await Menu.find({ hotels: hotelId })
             .populate({
-                path: 'items',
+                path: 'items.itemId',
                 model: 'Item',
             });
 
@@ -36,22 +36,30 @@ export const getHotelMenu = async (req, res) => {
             return res.status(404).json({ message: "Menu not found for this hotel" });
         }
 
+        // Fetch percentage increases per category for the hotel
         const percentages = await PricePercentage.find({ hotelId });
 
+        // Create a map from category to percentage
         const percentageMap = {};
         percentages.forEach(p => {
             percentageMap[p.category] = p.percentage;
         });
 
+        // Format the menu items with adjusted prices
         const formattedMenus = menus.map(menu => {
-            const updatedItems = menu.items.map(item => {
+            const updatedItems = menu.items.map(entry => {
+                const item = entry.itemId; // populated Item
+
+                if (!item) return null; // handle missing population
+
                 const percent = percentageMap[item.category] || 0;
                 const updatedPrice = item.price + (item.price * percent / 100);
+
                 return {
                     ...item.toObject(),
-                    adjustedPrice: Math.round(updatedPrice * 100) / 100,
+                    adjustedPrice: Math.round(updatedPrice * 100) / 100, // rounded to 2 decimals
                 };
-            });
+            }).filter(Boolean); // remove nulls if population failed
 
             return {
                 isAvailable: menu.isAvailable,
@@ -72,7 +80,7 @@ export const getHotelMenuByRestaurant = async (req, res) => {
      const hotelId = req.user.id; // Assuming hotelId is set in the request object
 
      try {
-        const menu = await Menu.findOne({ restaurantId , hotels: hotelId });
+        const menu = await Menu.findOne({ restaurantId , hotels: hotelId }).populate({ path: 'items.itemId', model: 'Item' });
         if (!menu) {
             return res.status(404).json({ message: "Menu not found for this restaurant" });
         }
@@ -315,6 +323,10 @@ export const addRestaurant = async (req, res) => {
             return res.status(400).json({ message: "Restaurant is already added" });
         }
         
+        const menu = await Menu.findOne({ restaurantId });
+        // Add the restaurant to the hotel's partnerRestaurants array
+        menu.hotels.push(hotelId);
+        await menu.save();
         hotel.partnerRestaurants.push({ restaurantId });
         await hotel.save();
         
@@ -341,6 +353,11 @@ export const removeRestaurant = async (req, res) => {
         if (!hotel) {
             return res.status(404).json({ message: "Hotel not found" });
         }
+        
+       const menu = await Menu.findOne({ restaurantId, hotels: hotelId });
+
+       menu.hotels = menu.hotels.filter(h => h.toString() !== hotelId);
+        await menu.save();
 
         hotel.partnerRestaurants = hotel.partnerRestaurants.filter(r => r.restaurantId.toString() !== restaurantId);
         await hotel.save();
